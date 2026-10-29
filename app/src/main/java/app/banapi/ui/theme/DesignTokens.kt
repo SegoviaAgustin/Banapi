@@ -104,6 +104,13 @@ object BanapiColors {
         val surfaceContainerHighest = Color(0xFF2A2A26)
     }
 
+    /** Colores para marcar imágenes con el dedo (el primero es el que viene elegido). */
+    val markup = listOf(
+        Color(0xFFFF3B30), // rojo
+        Color(0xFFF3CF40), // amarillo
+        Color(0xFFFFFFFF), // blanco
+    )
+
     /** Visor de imagen (igual en modo claro y oscuro). */
     object Viewer {
         val background = Color(0xFF000000)
@@ -208,6 +215,25 @@ object BanapiSizes {
 
     /** Ancho mínimo de cada columna de la Galería. */
     val galleryColumnMinWidth = 150.dp
+
+    // Chat
+    val chatBubbleMaxWidth = 300.dp    // ancho máximo de los mensajes del usuario
+    val chatImageMaxWidth = 360.dp     // ancho máximo de las imágenes generadas
+    val messageThumbnail = 72.dp       // imágenes adjuntas dentro de un mensaje
+    val composerThumbnail = 80.dp      // imágenes que se van a enviar, sobre la caja de texto
+    val composerActionButton = 30.dp   // botones "x" y "marcar" de esas imágenes
+    val composerActionIcon = 18.dp
+
+    // Marcar imágenes
+    val markupWidths = listOf(4.dp, 8.dp, 14.dp) // grosores del trazo; el del medio viene elegido
+    val markupSwatch = 28.dp
+    val markupSwatchBorder = 2.dp
+    val markupEdgeSpace = 64.dp // espacio arriba y abajo para los botones del editor
+
+    // Selector de imágenes de la galería
+    val pickerMaxHeight = 420.dp
+    val pickerSelectedBorder = 3.dp
+    val pickerCheckIcon = 22.dp
 
     // Indicador de carga dentro de un botón
     val buttonProgressSize = 18.dp

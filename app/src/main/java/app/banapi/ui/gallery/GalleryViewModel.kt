@@ -10,6 +10,7 @@ import app.banapi.BanapiApplication
 import app.banapi.R
 import app.banapi.data.GalleryImage
 import app.banapi.data.ImageStore
+import app.banapi.data.chat.ChatRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +18,10 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.io.File
 
-class GalleryViewModel(private val store: ImageStore) : ViewModel() {
+class GalleryViewModel(
+    private val store: ImageStore,
+    private val chats: ChatRepository,
+) : ViewModel() {
 
     val images: StateFlow<List<GalleryImage>> = store.images
 
@@ -46,11 +50,13 @@ class GalleryViewModel(private val store: ImageStore) : ViewModel() {
 
     fun shareIntent(file: File): Intent = store.shareIntent(file)
 
+    suspend fun chatIdOf(file: File): Long? = chats.chatIdForImage(file)
+
     companion object {
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as BanapiApplication
-                GalleryViewModel(app.images)
+                GalleryViewModel(app.images, app.chats)
             }
         }
     }

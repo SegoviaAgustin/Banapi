@@ -27,7 +27,6 @@ import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,7 +35,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -67,15 +65,17 @@ import app.banapi.R
 import app.banapi.data.ThemeMode
 import app.banapi.ui.components.BanapiCard
 import app.banapi.ui.components.CardHeader
+import app.banapi.ui.components.ConfirmDialog
 import app.banapi.ui.components.ScreenTitle
 import app.banapi.ui.components.StatusChip
+import app.banapi.ui.components.filledFieldColors
 import app.banapi.ui.theme.BanapiFonts
 import app.banapi.ui.theme.BanapiSizes
 import app.banapi.ui.theme.BanapiSpacing
 
 private const val AI_STUDIO_KEY_URL = "https://aistudio.google.com/apikey"
 
-private enum class PendingConfirmation { RemoveKey, DeleteAllImages }
+private enum class PendingConfirmation { RemoveKey, DeleteAllImages, DeleteAllChats }
 
 @Composable
 fun SettingsScreen(
@@ -108,6 +108,11 @@ fun SettingsScreen(
                 onSave = viewModel::saveApiKey,
                 onInputChange = viewModel::clearKeyError,
                 onRemove = { confirmation = PendingConfirmation.RemoveKey },
+            )
+            UsageCard(
+                usage = state.usage,
+                onSetBalance = viewModel::setBalance,
+                onClearBalance = viewModel::clearBalance,
             )
         }
 
@@ -144,6 +149,22 @@ fun SettingsScreen(
                     }
                 }
             }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = pluralStringResource(R.plurals.settings_chat_count, state.chatCount, state.chatCount),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+                if (state.chatCount > 0) {
+                    TextButton(
+                        onClick = { confirmation = PendingConfirmation.DeleteAllChats },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    ) {
+                        Text(stringResource(R.string.settings_storage_delete_chats))
+                    }
+                }
+            }
         }
 
         Text(
@@ -168,6 +189,12 @@ fun SettingsScreen(
             title = R.string.settings_delete_all_title,
             body = R.string.settings_delete_all_body,
             onConfirm = viewModel::deleteAllImages,
+            onDismiss = { confirmation = null },
+        )
+        PendingConfirmation.DeleteAllChats -> ConfirmDialog(
+            title = R.string.settings_delete_chats_title,
+            body = R.string.settings_delete_chats_body,
+            onConfirm = viewModel::deleteAllChats,
             onDismiss = { confirmation = null },
         )
         null -> Unit
@@ -290,15 +317,7 @@ private fun ApiKeyForm(
         isError = error != null,
         supportingText = error?.let { { Text(stringResource(it.message)) } },
         shape = MaterialTheme.shapes.medium,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = colors.surfaceContainerHighest,
-            unfocusedContainerColor = colors.surfaceContainerHighest,
-            disabledContainerColor = colors.surfaceContainerHighest,
-            errorContainerColor = colors.surfaceContainerHighest,
-            focusedBorderColor = colors.primary,
-            unfocusedBorderColor = Color.Transparent,
-            disabledBorderColor = Color.Transparent,
-        ),
+        colors = filledFieldColors(),
         trailingIcon = {
             IconButton(onClick = { keyVisible = !keyVisible }) {
                 Icon(
@@ -391,40 +410,6 @@ private val ThemeMode.label: Int
         ThemeMode.Light -> R.string.theme_light
         ThemeMode.Dark -> R.string.theme_dark
     }
-
-@Composable
-private fun ConfirmDialog(
-    @StringRes title: Int,
-    @StringRes body: Int,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        title = { Text(stringResource(title)) },
-        text = { Text(stringResource(body)) },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onConfirm()
-                    onDismiss()
-                },
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-            ) {
-                Text(stringResource(R.string.action_delete))
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
-            ) {
-                Text(stringResource(R.string.action_cancel))
-            }
-        },
-    )
-}
 
 /** Muestra solo el principio y el final de la key, por ejemplo "AIza••••x9Qw". */
 private fun maskApiKey(key: String): String =

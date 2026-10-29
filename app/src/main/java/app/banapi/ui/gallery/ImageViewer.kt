@@ -14,12 +14,11 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -27,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -48,6 +46,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.banapi.R
+import app.banapi.ui.components.ConfirmDialog
 import app.banapi.ui.theme.BanapiColors
 import app.banapi.ui.theme.BanapiSizes
 import app.banapi.ui.theme.BanapiSpacing
@@ -66,6 +65,7 @@ fun ImageViewer(
     onShare: () -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
+    onOpenChat: (() -> Unit)? = null,
 ) {
     var confirmDelete by remember { mutableStateOf(false) }
 
@@ -109,6 +109,7 @@ fun ImageViewer(
                         .padding(horizontal = BanapiSpacing.sm, vertical = BanapiSpacing.xs),
                     horizontalArrangement = Arrangement.spacedBy(BanapiSpacing.xs),
                 ) {
+                    onOpenChat?.let { ViewerAction(Icons.AutoMirrored.Outlined.Chat, R.string.gallery_open_chat, it) }
                     ViewerAction(Icons.Outlined.Share, R.string.action_share, onShare)
                     ViewerAction(Icons.Outlined.Download, R.string.action_save, onSave)
                     ViewerAction(Icons.Outlined.Delete, R.string.action_delete) { confirmDelete = true }
@@ -117,26 +118,11 @@ fun ImageViewer(
         }
 
         if (confirmDelete) {
-            AlertDialog(
-                onDismissRequest = { confirmDelete = false },
-                title = { Text(stringResource(R.string.gallery_delete_title)) },
-                text = { Text(stringResource(R.string.gallery_delete_body)) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            confirmDelete = false
-                            onDelete()
-                        },
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    ) {
-                        Text(stringResource(R.string.action_delete))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { confirmDelete = false }) {
-                        Text(stringResource(R.string.action_cancel))
-                    }
-                },
+            ConfirmDialog(
+                title = R.string.gallery_delete_title,
+                body = R.string.gallery_delete_body,
+                onConfirm = onDelete,
+                onDismiss = { confirmDelete = false },
             )
         }
     }

@@ -3,49 +3,42 @@ package app.banapi.ui.gallery
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PhotoLibrary
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.banapi.R
 import app.banapi.data.GalleryImage
+import app.banapi.ui.components.EmptyState
 import app.banapi.ui.components.ScreenTitle
 import app.banapi.ui.theme.BanapiSizes
 import app.banapi.ui.theme.BanapiSpacing
@@ -56,6 +49,7 @@ import java.io.File
 fun GalleryScreen(
     snackbarHostState: SnackbarHostState,
     contentPadding: PaddingValues,
+    onOpenChat: (Long) -> Unit,
     viewModel: GalleryViewModel = viewModel(factory = GalleryViewModel.Factory),
 ) {
     val images by viewModel.images.collectAsStateWithLifecycle()
@@ -82,7 +76,12 @@ fun GalleryScreen(
                 .padding(horizontal = BanapiSpacing.md),
         ) {
             ScreenTitle(R.string.nav_gallery)
-            EmptyGallery(Modifier.weight(1f))
+            EmptyState(
+                icon = Icons.Outlined.PhotoLibrary,
+                title = R.string.gallery_empty_title,
+                body = R.string.gallery_empty_body,
+                modifier = Modifier.weight(1f),
+            )
         }
     } else {
         ImageGrid(
@@ -90,6 +89,11 @@ fun GalleryScreen(
             contentPadding = contentPadding,
             onOpen = { openImagePath = it.path },
         )
+    }
+
+    // Chat donde se creó la imagen abierta, si todavía existe.
+    val openImageChat by produceState<Long?>(null, openImage) {
+        value = openImage?.let { viewModel.chatIdOf(it) }
     }
 
     if (openImage != null) {
@@ -102,6 +106,12 @@ fun GalleryScreen(
             onDelete = {
                 openImagePath = null
                 viewModel.delete(openImage)
+            },
+            onOpenChat = openImageChat?.let { chatId ->
+                {
+                    openImagePath = null
+                    onOpenChat(chatId)
+                }
             },
         )
     }
@@ -143,44 +153,5 @@ private fun ImageGrid(
                     .clickable { onOpen(image.file) },
             )
         }
-    }
-}
-
-@Composable
-private fun EmptyGallery(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = BanapiSpacing.xl),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(BanapiSizes.emptyStateCircle)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainer),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.PhotoLibrary,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(BanapiSizes.emptyStateIcon),
-            )
-        }
-        Spacer(Modifier.height(BanapiSpacing.lg))
-        Text(
-            text = stringResource(R.string.gallery_empty_title),
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(BanapiSpacing.sm))
-        Text(
-            text = stringResource(R.string.gallery_empty_body),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
     }
 }

@@ -3,6 +3,7 @@
     <string name="app_name">Banapi</string>
 
     <!-- Navegación -->
+    <string name="nav_create">Crear</string>
     <string name="nav_gallery">Galería</string>
     <string name="nav_settings">Ajustes</string>
 
@@ -12,11 +13,99 @@
     <string name="action_delete">Eliminar</string>
     <string name="action_share">Compartir</string>
     <string name="action_save">Guardar</string>
+    <string name="action_send">Enviar</string>
+    <string name="action_stop">Detener</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="action_remove">Quitar</string>
+    <string name="action_rename">Renombrar</string>
+    <string name="action_more">Más opciones</string>
+
+    <!-- Crear -->
+    <string name="create_new_chat">Nuevo chat</string>
+    <string name="create_untitled">Chat sin título</string>
+    <string name="create_empty_title">¿Qué quieres crear?</string>
+    <string name="create_empty_body">Describe la imagen o adjunta una para editarla.</string>
+    <string name="create_empty_no_key">Para empezar, agrega tu API key de Gemini.</string>
+    <string name="create_go_to_settings">Ir a Ajustes</string>
+    <string name="create_placeholder">Describe la imagen…</string>
+    <string name="create_generating">Generando…</string>
+    <string name="create_tokens">%1$s tokens</string>
+    <string name="create_cost_tokens">≈ %1$s · %2$s tokens</string>
+    <string name="create_image_deleted">Imagen eliminada</string>
+    <string name="create_attachment_description">Imagen adjunta</string>
+    <string name="create_attach">Adjuntar imagen</string>
+    <string name="create_attach_phone">Fotos del teléfono</string>
+    <string name="create_attach_gallery">Galería de Banapi</string>
+    <string name="create_attach_confirm">Adjuntar (%1$d)</string>
+    <string name="create_attach_limit">Llegaste al máximo de imágenes adjuntas.</string>
+    <string name="create_attach_failed">No se pudo adjuntar la imagen</string>
+    <string name="create_edit_image">Editar</string>
+    <string name="create_long_chat">Este chat ya es largo. Uno nuevo gasta menos tokens.</string>
+
+    <!-- Crear: marcar imágenes -->
+    <string name="markup_open">Marcar</string>
+    <string name="markup_undo">Deshacer</string>
+    <string name="markup_clear">Borrar marcas</string>
+    <string name="markup_done">Listo</string>
+    <string name="markup_color">Color %1$d</string>
+    <string name="markup_width">Grosor %1$d</string>
+
+    <!-- Crear: opciones del chat -->
+    <string name="options_title">Opciones del chat</string>
+    <string name="options_open">Opciones</string>
+    <string name="options_auto">Auto</string>
+    <string name="options_response">Respuesta</string>
+    <string name="options_images_only">Solo imágenes</string>
+    <string name="options_images_text">Imágenes y texto</string>
+    <string name="options_aspect_ratio">Proporción</string>
+    <string name="options_resolution">Resolución</string>
+    <string name="options_resolution_auto">Auto (1K)</string>
+    <string name="options_size_2k" translatable="false">2K</string>
+    <string name="options_size_4k" translatable="false">4K</string>
+    <string name="options_resolution_note">Más resolución, más tokens.</string>
+    <string name="options_thinking">Razonamiento</string>
+    <string name="options_thinking_auto">Auto (medio)</string>
+    <string name="options_thinking_minimal">Mínimo</string>
+    <string name="options_thinking_high">Alto</string>
+    <string name="options_thinking_note">Con más razonamiento sigue mejor las indicaciones, pero tarda más y gasta más tokens.</string>
+    <string name="options_search">Búsqueda de Google</string>
+    <string name="options_search_note">Usa información actual de la web. Gasta más tokens.</string>
+    <string name="options_instructions">Instrucciones del chat</string>
+    <string name="options_instructions_placeholder">Por ejemplo: estilo acuarela, colores pastel</string>
+    <string name="options_reset">Restablecer</string>
+    <string name="options_usage">Gastado en este chat: %1$s</string>
+
+    <!-- Crear: lista de chats -->
+    <string name="chats_title">Chats</string>
+    <string name="chats_open_list">Ver chats</string>
+    <string name="chats_search">Buscar</string>
+    <string name="chats_empty">Aún no hay chats.</string>
+    <string name="chats_no_results">No hay chats con ese nombre.</string>
+    <string name="chat_rename_title">Renombrar chat</string>
+    <string name="chat_delete_title">¿Eliminar chat?</string>
+    <string name="chat_delete_body">Se borrarán sus mensajes y las imágenes que adjuntaste.</string>
+    <string name="chat_delete_images">Borrar también sus imágenes de la Galería</string>
+    <string name="msg_chat_deleted">Chat eliminado</string>
+
+    <!-- Crear: errores -->
+    <string name="error_gen_no_key">Agrega tu API key en Ajustes para crear imágenes.</string>
+    <string name="error_gen_invalid_key">Google rechazó tu API key. Revísala en Ajustes.</string>
+    <string name="error_gen_no_connection">Sin conexión. Revisa tu internet e inténtalo de nuevo.</string>
+    <string name="error_gen_timeout">Google tardó demasiado en responder. Inténtalo de nuevo.</string>
+    <string name="error_gen_quota">Llegaste al límite de uso de tu key. Espera un momento e inténtalo de nuevo.</string>
+    <string name="error_gen_no_credits">Te quedaste sin saldo en Google. Carga créditos en Google AI Studio.</string>
+    <string name="error_gen_blocked">Google bloqueó este pedido por sus filtros de contenido.</string>
+    <string name="error_gen_no_image">El modelo no devolvió ninguna imagen. Prueba describirla de otra forma.</string>
+    <string name="error_gen_server">Los servidores de Google tienen problemas. Inténtalo en unos minutos.</string>
+    <string name="error_gen_failed">No se pudo crear la imagen.</string>
+    <string name="error_gen_interrupted">Se interrumpió porque la app se cerró.</string>
+    <string name="error_gen_cancelled">Detenido</string>
 
     <!-- Galería -->
     <string name="gallery_empty_title">Aún no hay imágenes</string>
     <string name="gallery_empty_body">Las imágenes que crees aparecerán aquí.</string>
     <string name="gallery_image_description">Imagen generada</string>
+    <string name="gallery_open_chat">Ir al chat</string>
     <string name="gallery_delete_title">¿Eliminar imagen?</string>
     <string name="gallery_delete_body">Se borrará de Banapi. Si la guardaste en el teléfono, esa copia se mantiene.</string>
     <string name="msg_image_saved">Guardada en Imágenes/Banapi</string>
@@ -40,6 +129,25 @@
     <string name="msg_key_saved">API key verificada y guardada</string>
     <string name="msg_key_removed">API key eliminada</string>
 
+    <!-- Ajustes: uso y gasto -->
+    <string name="settings_usage_title">Uso y gasto</string>
+    <string name="settings_usage_month">Este mes</string>
+    <string name="settings_usage_total">Total</string>
+    <plurals name="settings_usage_images">
+        <item quantity="one">%1$s · %2$d imagen</item>
+        <item quantity="other">%1$s · %2$d imágenes</item>
+    </plurals>
+    <string name="settings_balance_empty">Anota el saldo que cargaste en Google y Banapi te muestra cuánto te queda.</string>
+    <string name="settings_balance_remaining">Te quedan ≈ %1$s de %2$s</string>
+    <string name="settings_balance_set">Anotar saldo</string>
+    <string name="settings_balance_change">Cambiar</string>
+    <string name="settings_balance_remove">Quitar</string>
+    <string name="settings_balance_title">Saldo cargado</string>
+    <string name="settings_balance_body">Escribe el saldo que tienes ahora en Google AI Studio. Desde este momento se descuenta lo que gastes en Banapi.</string>
+    <string name="settings_balance_hint">Monto en US$, por ejemplo 10</string>
+    <string name="settings_balance_real">Ver saldo real</string>
+    <string name="settings_usage_note">Es un cálculo con los precios de Google para Nano Banana 2.1. Google no deja consultar el saldo desde la app: el cobro exacto lo ves en AI Studio.</string>
+
     <!-- Ajustes: tema -->
     <string name="settings_theme_title">Tema</string>
     <string name="theme_system">Sistema</string>
@@ -52,9 +160,17 @@
     <string name="settings_delete_all_title">¿Borrar todas las imágenes?</string>
     <string name="settings_delete_all_body">Se borrarán de Banapi. Las que guardaste en el teléfono se mantienen.</string>
     <string name="msg_images_deleted">Imágenes eliminadas</string>
+    <string name="settings_storage_delete_chats">Borrar chats</string>
+    <string name="settings_delete_chats_title">¿Borrar todos los chats?</string>
+    <string name="settings_delete_chats_body">Se borrarán los mensajes y las imágenes que adjuntaste. Las imágenes creadas quedan en la Galería.</string>
+    <string name="msg_chats_deleted">Chats eliminados</string>
     <plurals name="settings_storage_count">
         <item quantity="one">%d imagen</item>
         <item quantity="other">%d imágenes</item>
+    </plurals>
+    <plurals name="settings_chat_count">
+        <item quantity="one">%d chat</item>
+        <item quantity="other">%d chats</item>
     </plurals>
 
     <!-- Ajustes: pie -->
