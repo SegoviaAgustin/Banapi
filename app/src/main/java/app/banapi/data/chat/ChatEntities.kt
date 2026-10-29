@@ -28,6 +28,14 @@ data class ChatOptions(
 ) {
     val isDefault: Boolean get() = this == ChatOptions()
 
+    /** La proporción como número (ancho / alto); 1 si está en Auto. */
+    val aspectRatioValue: Float
+        get() {
+            val parts = aspectRatio?.split(":")?.mapNotNull { it.toFloatOrNull() }
+            if (parts == null || parts.size != 2 || parts[1] <= 0f) return 1f
+            return parts[0] / parts[1]
+        }
+
     companion object {
         // Valores que acepta Nano Banana 2.1.
         val ASPECT_RATIOS = listOf(

@@ -38,6 +38,7 @@ data class ChatMessage(
     val errorDetail: String?,
     val tokens: Int,
     val costMicros: Long,
+    val createdAt: Long,
     val images: List<ChatImage>,
 )
 
@@ -278,6 +279,7 @@ class ChatRepository(
         errorDetail = message.errorDetail,
         tokens = message.inputTokens + message.outputTokens,
         costMicros = message.costMicros,
+        createdAt = message.createdAt,
         images = images.sortedBy { it.position }.map { image ->
             val file = imageStore.fileOf(image.path)
             val ratio = if (image.width > 0 && image.height > 0) image.width.toFloat() / image.height else 1f

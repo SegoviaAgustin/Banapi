@@ -1,6 +1,13 @@
 package app.banapi.ui.components
 
+import android.content.Context
 import androidx.annotation.StringRes
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,17 +30,26 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import app.banapi.R
+import app.banapi.ui.theme.BanapiMotion
 import app.banapi.ui.theme.BanapiSizes
 import app.banapi.ui.theme.BanapiSpacing
 import java.util.Locale
+
+/** Texto de un aviso: un string, o un plural con su cantidad (por ejemplo, "3 imágenes eliminadas"). */
+data class UiText(val id: Int, val quantity: Int? = null) {
+    fun resolve(context: Context): String =
+        if (quantity == null) context.getString(id) else context.resources.getQuantityString(id, quantity, quantity)
+}
 
 /** Dinero en dólares a partir de millonésimas, por ejemplo "US$0,044". */
 fun formatUsd(micros: Long, decimals: Int = 2): String =
@@ -124,8 +140,21 @@ fun EmptyState(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        val reducedMotion = rememberReducedMotion()
+        val float by rememberInfiniteTransition(label = "emptyState").animateFloat(
+            initialValue = -1f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                tween(BanapiMotion.float / 2, easing = FastOutSlowInEasing),
+                RepeatMode.Reverse,
+            ),
+            label = "float",
+        )
         Box(
             modifier = Modifier
+                .graphicsLayer {
+                    if (!reducedMotion) translationY = float * BanapiMotion.floatOffset.toPx()
+                }
                 .size(BanapiSizes.emptyStateCircle)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceContainer),
@@ -166,14 +195,23 @@ fun ConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
     extra: (@Composable () -> Unit)? = null,
+) = ConfirmDialog(stringResource(title), stringResource(body), onConfirm, onDismiss, extra)
+
+@Composable
+fun ConfirmDialog(
+    title: String,
+    body: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    extra: (@Composable () -> Unit)? = null,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        title = { Text(stringResource(title)) },
+        title = { Text(title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(BanapiSpacing.md)) {
-                Text(stringResource(body))
+                Text(body)
                 extra?.invoke()
             }
         },

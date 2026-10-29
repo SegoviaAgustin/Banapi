@@ -1,8 +1,18 @@
 package app.banapi.ui.create
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterExitState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,17 +55,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import app.banapi.R
+import app.banapi.ui.components.pressScale
 import app.banapi.ui.theme.BanapiColors
+import app.banapi.ui.theme.BanapiMotion
 import app.banapi.ui.theme.BanapiSizes
 import app.banapi.ui.theme.BanapiSpacing
 import coil3.compose.AsyncImage
 import java.io.File
 
 private const val MAX_LINES = 6
+
+// Cómo cambia el botón de Enviar a Detener.
+private const val SWAP_SCALE = 0.6f
+private const val SWAP_ROTATION = -90f
 
 /** Caja para escribir, con las imágenes que se van a enviar encima. */
 @Composable
@@ -84,6 +101,7 @@ fun Composer(
             LazyRow(horizontalArrangement = Arrangement.spacedBy(BanapiSpacing.sm)) {
                 items(attachments, key = { it.path }) { file ->
                     AttachmentThumbnail(
+                        modifier = Modifier.animateItem(),
                         file = file,
                         onMark = { onMarkAttachment(file) },
                         onRemove = { onRemoveAttachment(file) },
@@ -128,20 +146,52 @@ fun Composer(
                 )
 
                 // Mismo margen abajo y a la derecha: queda centrado cuando hay una sola línea.
-                val buttonModifier = Modifier.padding(bottom = BanapiSpacing.xs, end = BanapiSpacing.xs)
-                if (isGenerating) {
-                    FilledIconButton(onClick = onStop, modifier = buttonModifier) {
-                        Icon(Icons.Filled.Stop, contentDescription = stringResource(R.string.action_stop))
-                    }
-                } else {
-                    FilledIconButton(
-                        onClick = onSend,
-                        enabled = text.isNotBlank() || attachments.isNotEmpty(),
-                        modifier = buttonModifier,
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.action_send))
-                    }
-                }
+                SendButton(
+                    isGenerating = isGenerating,
+                    enabled = text.isNotBlank() || attachments.isNotEmpty(),
+                    onSend = onSend,
+                    onStop = onStop,
+                    modifier = Modifier.padding(bottom = BanapiSpacing.xs, end = BanapiSpacing.xs),
+                )
+            }
+        }
+    }
+}
+
+/** Enviar se transforma en Detener (y al revés) con un giro. */
+@Composable
+private fun SendButton(
+    isGenerating: Boolean,
+    enabled: Boolean,
+    onSend: () -> Unit,
+    onStop: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AnimatedContent(
+        targetState = isGenerating,
+        transitionSpec = {
+            (fadeIn(tween(BanapiMotion.fast)) + scaleIn(initialScale = SWAP_SCALE)) togetherWith
+                (fadeOut(tween(BanapiMotion.fast)) + scaleOut(targetScale = SWAP_SCALE))
+        },
+        modifier = modifier,
+        label = "sendButton",
+    ) { generating ->
+        val rotation by transition.animateFloat(label = "sendRotation") { state ->
+            if (state == EnterExitState.Visible) 0f else SWAP_ROTATION
+        }
+        val interaction = remember { MutableInteractionSource() }
+        FilledIconButton(
+            onClick = if (generating) onStop else onSend,
+            enabled = generating || enabled,
+            interactionSource = interaction,
+            modifier = Modifier
+                .pressScale(interaction)
+                .graphicsLayer { rotationZ = rotation },
+        ) {
+            if (generating) {
+                Icon(Icons.Filled.Stop, contentDescription = stringResource(R.string.action_stop))
+            } else {
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.action_send))
             }
         }
     }
@@ -195,8 +245,8 @@ private fun OptionsButton(hasCustomOptions: Boolean, onClick: () -> Unit, modifi
 }
 
 @Composable
-private fun AttachmentThumbnail(file: File, onMark: () -> Unit, onRemove: () -> Unit) {
-    Box(modifier = Modifier.size(BanapiSizes.composerThumbnail)) {
+private fun AttachmentThumbnail(file: File, onMark: () -> Unit, onRemove: () -> Unit, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.size(BanapiSizes.composerThumbnail)) {
         AsyncImage(
             model = file,
             contentDescription = stringResource(R.string.create_attachment_description),

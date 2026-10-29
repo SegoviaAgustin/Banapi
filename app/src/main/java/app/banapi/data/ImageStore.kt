@@ -106,8 +106,10 @@ class ImageStore(private val context: Context) {
         File(directory, "banapi_${System.nanoTime()}.$extension").apply { writeBytes(bytes) }
     }
 
-    suspend fun delete(file: File) {
-        withContext(Dispatchers.IO) { file.delete() }
+    suspend fun delete(file: File) = delete(listOf(file))
+
+    suspend fun delete(files: List<File>) {
+        withContext(Dispatchers.IO) { files.forEach { it.delete() } }
         refresh()
     }
 
@@ -140,13 +142,22 @@ class ImageStore(private val context: Context) {
         }.isSuccess
     }
 
-    fun shareIntent(file: File): Intent {
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-        val send = Intent(Intent.ACTION_SEND)
-            .setType(mimeTypeOf(file))
-            .putExtra(Intent.EXTRA_STREAM, uri)
-            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        send.clipData = ClipData.newRawUri(null, uri)
+    fun shareIntent(file: File): Intent = shareIntent(listOf(file))
+
+    /** Compartir una o varias imágenes con otras apps. */
+    fun shareIntent(files: List<File>): Intent {
+        val uris = files.map { FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", it) }
+        val mimeType = files.map(::mimeTypeOf).distinct().singleOrNull() ?: "image/*"
+        val send = if (uris.size == 1) {
+            Intent(Intent.ACTION_SEND).putExtra(Intent.EXTRA_STREAM, uris.first())
+        } else {
+            Intent(Intent.ACTION_SEND_MULTIPLE).putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+        }
+        send.setType(mimeType).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        // Sin ClipData, algunas apps no reciben el permiso para leer las imágenes.
+        send.clipData = ClipData.newRawUri(null, uris.first()).apply {
+            uris.drop(1).forEach { addItem(ClipData.Item(it)) }
+        }
         return Intent.createChooser(send, null)
     }
 

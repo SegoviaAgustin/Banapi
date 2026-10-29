@@ -23,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -37,8 +38,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -46,6 +50,7 @@ import androidx.compose.ui.unit.max
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.banapi.R
+import app.banapi.data.chat.MessageStatus
 import app.banapi.ui.components.EmptyState
 import app.banapi.ui.gallery.ImageViewer
 import app.banapi.ui.theme.BanapiSpacing
@@ -53,7 +58,6 @@ import java.io.File
 
 @Composable
 fun CreateScreen(
-    snackbarHostState: SnackbarHostState,
     contentPadding: PaddingValues,
     onOpenChats: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -64,6 +68,7 @@ fun CreateScreen(
     var draft by rememberSaveable { mutableStateOf("") }
 
     var openImagePath by rememberSaveable { mutableStateOf<String?>(null) }
+    var openImageOrigin by remember { mutableStateOf<Rect?>(null) }
     val openImage = state.messages
         .flatMap { it.images }
         .firstOrNull { it.exists && it.file.path == openImagePath }
@@ -80,14 +85,25 @@ fun CreateScreen(
     val focusManager = LocalFocusManager.current
 
     // Con cada mensaje nuevo, y cuando una respuesta termina, se baja hasta el final del chat.
+    // Si la imagen terminó con el chat abierto, el teléfono vibra suave.
     val listState = rememberLazyListState()
+    val haptic = LocalHapticFeedback.current
     val newest = state.messages.lastOrNull()
+    var waitingFor by remember { mutableStateOf<Long?>(null) }
     LaunchedEffect(newest?.id, newest?.status) {
-        if (newest != null) listState.animateScrollToItem(0)
+        if (newest == null) return@LaunchedEffect
+        if (newest.status == MessageStatus.Pending) waitingFor = newest.id
+        if (newest.status == MessageStatus.Done && newest.id == waitingFor) {
+            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+            waitingFor = null
+        }
+        listState.animateScrollToItem(0)
     }
 
     // El visor tiene su propio snackbar porque se muestra por encima de la app.
     val viewerSnackbarHostState = remember { SnackbarHostState() }
+    // Los avisos de Crear salen arriba de la caja de texto, para no taparla.
+    val snackbarHostState = remember { SnackbarHostState() }
     val isViewerOpen by rememberUpdatedState(openImage != null)
     LaunchedEffect(viewModel) {
         viewModel.snackbarMessages.collect { message ->
@@ -129,9 +145,14 @@ fun CreateScreen(
                 )
                 else -> MessageList(
                     messages = state.messages,
+                    openedAt = state.openedAt,
+                    pendingAspectRatio = state.options.aspectRatioValue,
                     listState = listState,
                     imageActions = ImageActions(
-                        onOpen = { openImagePath = it.path },
+                        onOpen = { file, origin ->
+                            openImageOrigin = origin
+                            openImagePath = file.path
+                        },
                         onEdit = { viewModel.attach(listOf(it)) },
                         onSave = viewModel::saveToDevice,
                         onShare = { context.startActivity(viewModel.shareIntent(it)) },
@@ -139,6 +160,11 @@ fun CreateScreen(
                     onRetry = viewModel::retry,
                 )
             }
+
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
         }
 
         if (state.showLongChatNotice) {
@@ -163,6 +189,7 @@ fun CreateScreen(
             isGenerating = state.isGenerating,
             onSend = {
                 if (viewModel.send(draft)) {
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                     draft = ""
                     keyboard?.hide()
                     focusManager.clearFocus()
@@ -204,6 +231,7 @@ fun CreateScreen(
     if (openImage != null) {
         ImageViewer(
             file = openImage,
+            origin = openImageOrigin,
             snackbarHostState = viewerSnackbarHostState,
             onDismiss = { openImagePath = null },
             onShare = { context.startActivity(viewModel.shareIntent(openImage)) },

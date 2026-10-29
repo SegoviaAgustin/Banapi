@@ -48,6 +48,8 @@ data class CreateUiState(
     val hasApiKey: Boolean = true,
     val showLongChatNotice: Boolean = false,
     val options: ChatOptions = ChatOptions(),
+    /** Cuándo se abrió el chat: lo que llega después se muestra animado. */
+    val openedAt: Long = 0,
 ) {
     /** Tokens y gasto de todo el chat. */
     val totalTokens: Int get() = messages.sumOf { it.tokens }
@@ -61,6 +63,13 @@ private const val LONG_CHAT_MESSAGES = 30
 
 const val MAX_ATTACHMENTS = GeminiApi.MAX_INPUT_IMAGES
 
+private data class Flags(
+    val isLoaded: Boolean,
+    val hasApiKey: Boolean,
+    val longChatDismissed: Set<Long>,
+    val openedAt: Long,
+)
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class CreateViewModel(
     private val chats: ChatRepository,
@@ -71,6 +80,7 @@ class CreateViewModel(
     /** null = chat nuevo, todavía sin mensajes. */
     private val chatId = MutableStateFlow<Long?>(null)
     private val isLoaded = MutableStateFlow(false)
+    private val openedAt = MutableStateFlow(System.currentTimeMillis())
     private val attachments = MutableStateFlow<List<File>>(emptyList())
 
     // Adjuntos que son copias marcadas con el dedo.
@@ -90,8 +100,7 @@ class CreateViewModel(
 
     private val hasApiKey: Flow<Boolean> = settings.apiKey.map { it != null }
 
-    private val flags: Flow<Triple<Boolean, Boolean, Set<Long>>> =
-        combine(isLoaded, hasApiKey, longChatDismissed, ::Triple)
+    private val flags: Flow<Flags> = combine(isLoaded, hasApiKey, longChatDismissed, openedAt, ::Flags)
 
     val uiState: StateFlow<CreateUiState> = combine(
         flags,
@@ -99,7 +108,7 @@ class CreateViewModel(
         messages,
         attachments,
         newChatOptions,
-    ) { (isLoaded, hasApiKey, dismissed), chat, messages, attachments, newChatOptions ->
+    ) { (isLoaded, hasApiKey, dismissed, openedAt), chat, messages, attachments, newChatOptions ->
         CreateUiState(
             isLoaded = isLoaded,
             chatId = chat?.id,
@@ -109,6 +118,7 @@ class CreateViewModel(
             hasApiKey = hasApiKey,
             showLongChatNotice = chat != null && chat.id !in dismissed && messages.size >= LONG_CHAT_MESSAGES,
             options = chat?.options ?: newChatOptions,
+            openedAt = openedAt,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CreateUiState())
 
@@ -201,6 +211,7 @@ class CreateViewModel(
     fun openChat(id: Long?) {
         if (id != null && id == chatId.value) return
         chatId.value = id
+        openedAt.value = System.currentTimeMillis()
         attachments.value = emptyList()
         markedFiles = emptySet()
         newChatOptions.value = ChatOptions()

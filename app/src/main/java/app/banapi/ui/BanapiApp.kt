@@ -2,10 +2,17 @@ package app.banapi.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -41,6 +49,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,18 +59,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.banapi.R
+import app.banapi.ui.components.rememberReducedMotion
 import app.banapi.ui.create.ChatListDrawer
 import app.banapi.ui.create.CreateScreen
 import app.banapi.ui.create.CreateViewModel
 import app.banapi.ui.gallery.GalleryScreen
 import app.banapi.ui.settings.SettingsScreen
+import app.banapi.ui.theme.BanapiMotion
 import app.banapi.ui.theme.BanapiSizes
 import app.banapi.ui.theme.BanapiSpacing
 import kotlinx.coroutines.launch
@@ -142,24 +154,39 @@ private fun AppContent(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
     ) {
+        // La Galería oculta la barra mientras se eligen imágenes, para mostrar sus acciones.
+        var gallerySelecting by remember { mutableStateOf(false) }
+
         Box(modifier = Modifier.fillMaxSize()) {
-            when (current) {
-                Destination.Create -> CreateScreen(
-                    snackbarHostState = snackbarHostState,
-                    contentPadding = contentPadding,
-                    onOpenChats = onOpenChats,
-                    onOpenSettings = { onSelect(Destination.Settings) },
-                    viewModel = createViewModel,
-                )
-                Destination.Gallery -> GalleryScreen(
-                    snackbarHostState = snackbarHostState,
-                    contentPadding = contentPadding,
-                    onOpenChat = {
-                        createViewModel.openChat(it)
-                        onSelect(Destination.Create)
-                    },
-                )
-                Destination.Settings -> SettingsScreen(snackbarHostState, contentPadding)
+            AnimatedContent(
+                targetState = current,
+                transitionSpec = {
+                    fadeIn(tween(BanapiMotion.medium)) togetherWith fadeOut(tween(BanapiMotion.fast))
+                },
+                label = "screen",
+            ) { destination ->
+                when (destination) {
+                    Destination.Create -> CreateScreen(
+                        contentPadding = contentPadding,
+                        onOpenChats = onOpenChats,
+                        onOpenSettings = { onSelect(Destination.Settings) },
+                        viewModel = createViewModel,
+                    )
+                    Destination.Gallery -> GalleryScreen(
+                        snackbarHostState = snackbarHostState,
+                        contentPadding = contentPadding,
+                        onOpenChat = {
+                            createViewModel.openChat(it)
+                            onSelect(Destination.Create)
+                        },
+                        onUseInCreate = {
+                            createViewModel.attach(it)
+                            onSelect(Destination.Create)
+                        },
+                        onSelectionModeChange = { gallerySelecting = it },
+                    )
+                    Destination.Settings -> SettingsScreen(snackbarHostState, contentPadding)
+                }
             }
 
             // Fondo detrás de la barra de estado.
@@ -180,9 +207,9 @@ private fun AppContent(
 
             // Con el teclado abierto se oculta, para dejar lugar a lo que se escribe.
             AnimatedVisibility(
-                visible = !WindowInsets.isImeVisible,
-                enter = fadeIn(),
-                exit = fadeOut(),
+                visible = !WindowInsets.isImeVisible && !gallerySelecting,
+                enter = fadeIn() + slideInVertically { it },
+                exit = fadeOut() + slideOutVertically { it },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .navigationBarsPadding()
@@ -207,18 +234,31 @@ private fun FloatingNavBar(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         border = BorderStroke(BanapiSizes.navBarBorder, MaterialTheme.colorScheme.outlineVariant),
     ) {
-        Row(
-            modifier = Modifier
-                .selectableGroup()
-                .padding(BanapiSpacing.xs),
-            horizontalArrangement = Arrangement.spacedBy(BanapiSpacing.xs),
-        ) {
-            Destination.entries.forEach { destination ->
-                NavItem(
-                    destination = destination,
-                    selected = destination == current,
-                    onClick = { onSelect(destination) },
-                )
+        // La píldora amarilla se desliza hasta la pestaña elegida.
+        val indicatorOffset by animateDpAsState(
+            targetValue = (BanapiSizes.navItemWidth + BanapiSpacing.xs) * current.ordinal,
+            animationSpec = BanapiMotion.smooth(),
+            label = "navIndicator",
+        )
+        Box(modifier = Modifier.padding(BanapiSpacing.xs)) {
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset(indicatorOffset.roundToPx(), 0) }
+                    .size(BanapiSizes.navItemWidth, BanapiSizes.navItemHeight)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary),
+            )
+            Row(
+                modifier = Modifier.selectableGroup(),
+                horizontalArrangement = Arrangement.spacedBy(BanapiSpacing.xs),
+            ) {
+                Destination.entries.forEach { destination ->
+                    NavItem(
+                        destination = destination,
+                        selected = destination == current,
+                        onClick = { onSelect(destination) },
+                    )
+                }
             }
         }
     }
@@ -231,20 +271,26 @@ private fun NavItem(
     onClick: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
-    val container by animateColorAsState(
-        targetValue = if (selected) colors.primary else Color.Transparent,
-        label = "navItemContainer",
-    )
     val content by animateColorAsState(
         targetValue = if (selected) colors.onPrimary else colors.onSurfaceVariant,
+        animationSpec = tween(BanapiMotion.fast),
         label = "navItemContent",
     )
+
+    // Rebote del ícono al elegir la pestaña.
+    val iconScale = remember { Animatable(1f) }
+    val reducedMotion = rememberReducedMotion()
+    LaunchedEffect(selected) {
+        if (selected && !reducedMotion) {
+            iconScale.snapTo(BanapiMotion.navBounceScale)
+            iconScale.animateTo(1f, BanapiMotion.bouncy())
+        }
+    }
 
     Box(
         modifier = Modifier
             .size(BanapiSizes.navItemWidth, BanapiSizes.navItemHeight)
             .clip(CircleShape)
-            .background(container)
             .selectable(selected = selected, onClick = onClick, role = Role.Tab),
         contentAlignment = Alignment.Center,
     ) {
@@ -252,6 +298,10 @@ private fun NavItem(
             imageVector = destination.icon,
             contentDescription = stringResource(destination.label),
             tint = content,
+            modifier = Modifier.graphicsLayer {
+                scaleX = iconScale.value
+                scaleY = iconScale.value
+            },
         )
     }
 }

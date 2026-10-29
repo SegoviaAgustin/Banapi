@@ -13,7 +13,7 @@ App Android open source para crear imágenes con **Nano Banana 2.1** usando tu p
 - **Crear:** chats como en Google AI Studio. Describe la imagen, adjunta fotos de referencia o para editar y marca con el dedo lo que quieres cambiar. Cada chat guarda su historial en el teléfono.
 - **Opciones del chat:** proporción, resolución (1K, 2K o 4K), nivel de razonamiento, búsqueda de Google e instrucciones. Todo viene en Auto.
 - **Gasto a la vista:** cada respuesta muestra cuánto costó (estimado) y los tokens que usó. Del historial se envía todo el texto y solo las imágenes de los últimos mensajes, para no gastar de más.
-- **Galería:** mosaico de imágenes, visor con zoom, compartir, guardar en el teléfono y eliminar.
+- **Galería:** mosaico de imágenes, visor con zoom y selección múltiple para compartir, guardar, usar en Crear o eliminar varias a la vez.
 - **Ajustes:** API key, gasto del mes y total, saldo restante estimado, tema (sistema, claro u oscuro) y almacenamiento usado (imágenes y chats).
 
 ## Tecnologías

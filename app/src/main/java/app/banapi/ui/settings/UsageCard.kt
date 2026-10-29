@@ -1,6 +1,8 @@
 package app.banapi.ui.settings
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,6 +38,7 @@ import app.banapi.ui.components.BanapiCard
 import app.banapi.ui.components.CardHeader
 import app.banapi.ui.components.filledFieldColors
 import app.banapi.ui.components.formatUsd
+import app.banapi.ui.theme.BanapiMotion
 import app.banapi.ui.theme.BanapiSpacing
 
 private const val AI_STUDIO_BILLING_URL = "https://aistudio.google.com/billing"
@@ -46,12 +49,13 @@ fun UsageCard(
     usage: UsageState,
     onSetBalance: (String) -> Boolean,
     onClearBalance: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var editingBalance by remember { mutableStateOf(false) }
     val uriHandler = LocalUriHandler.current
     val colors = MaterialTheme.colorScheme
 
-    BanapiCard {
+    BanapiCard(modifier) {
         CardHeader(
             icon = Icons.Outlined.AccountBalanceWallet,
             title = R.string.settings_usage_title,
@@ -97,8 +101,14 @@ fun UsageCard(
                 ),
                 style = MaterialTheme.typography.titleMedium,
             )
+            // La barra se llena animada hasta lo que queda.
+            val remaining by animateFloatAsState(
+                targetValue = (usage.remainingMicros.toFloat() / balance).coerceIn(0f, 1f),
+                animationSpec = tween(BanapiMotion.slow),
+                label = "balance",
+            )
             LinearProgressIndicator(
-                progress = { (usage.remainingMicros.toFloat() / balance).coerceIn(0f, 1f) },
+                progress = { remaining },
                 modifier = Modifier.fillMaxWidth(),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(BanapiSpacing.sm)) {

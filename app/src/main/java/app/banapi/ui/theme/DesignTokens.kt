@@ -1,5 +1,8 @@
 package app.banapi.ui.theme
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.SpringSpec
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
@@ -238,4 +241,36 @@ object BanapiSizes {
     // Indicador de carga dentro de un botón
     val buttonProgressSize = 18.dp
     val buttonProgressStroke = 2.dp
+}
+
+// ---------------------------------------------------------------------------
+// 7. MOVIMIENTO
+// ---------------------------------------------------------------------------
+// Duraciones en milisegundos. Más alto = más lento.
+
+object BanapiMotion {
+    val fast = 150       // cambios chicos: colores, íconos
+    val medium = 300     // elementos que entran, cambio de pestaña
+    val slow = 600       // imagen que se revela, visor que se abre
+    val stagger = 45     // demora entre elementos que entran en cascada
+    val staggerMaxItems = 8 // a partir de este elemento ya no se demora más
+
+    val shimmer = 1400   // una pasada del brillo mientras se genera
+    val pulse = 900      // latido del ícono mientras se genera
+    val float = 2600     // ida y vuelta del ícono de las pantallas vacías
+
+    val pressedScale = 0.94f  // botones e imágenes mientras se tocan
+    val selectedScale = 0.88f // imágenes elegidas en la Galería
+    val navBounceScale = 0.75f // rebote del ícono de la pestaña elegida
+    val pulseScale = 1.15f     // tamaño máximo del ícono que late mientras se genera
+
+    val appearOffset = 24.dp  // cuánto sube un elemento al aparecer
+    val floatOffset = 6.dp
+    val revealBlur = 24.dp    // desenfoque inicial de una imagen nueva
+
+    /** Resorte suave para movimientos (barra de navegación, selección). */
+    fun <T> smooth(): SpringSpec<T> = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessMediumLow)
+
+    /** Resorte con rebote, para el ícono de la pestaña elegida. */
+    fun <T> bouncy(): SpringSpec<T> = spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessMedium)
 }

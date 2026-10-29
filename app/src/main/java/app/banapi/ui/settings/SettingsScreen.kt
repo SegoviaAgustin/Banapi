@@ -68,6 +68,7 @@ import app.banapi.ui.components.CardHeader
 import app.banapi.ui.components.ConfirmDialog
 import app.banapi.ui.components.ScreenTitle
 import app.banapi.ui.components.StatusChip
+import app.banapi.ui.components.appear
 import app.banapi.ui.components.filledFieldColors
 import app.banapi.ui.theme.BanapiFonts
 import app.banapi.ui.theme.BanapiSizes
@@ -102,26 +103,29 @@ fun SettingsScreen(
     ) {
         ScreenTitle(R.string.nav_settings)
 
+        // Las tarjetas entran en cascada.
         if (state.isLoaded) {
             ApiKeyCard(
                 state = state,
                 onSave = viewModel::saveApiKey,
                 onInputChange = viewModel::clearKeyError,
                 onRemove = { confirmation = PendingConfirmation.RemoveKey },
+                modifier = Modifier.appear(index = 0),
             )
             UsageCard(
                 usage = state.usage,
                 onSetBalance = viewModel::setBalance,
                 onClearBalance = viewModel::clearBalance,
+                modifier = Modifier.appear(index = 1),
             )
         }
 
-        BanapiCard {
+        BanapiCard(Modifier.appear(index = 2)) {
             CardHeader(icon = Icons.Outlined.Palette, title = R.string.settings_theme_title)
             ThemeSelector(selected = state.themeMode, onSelect = viewModel::setThemeMode)
         }
 
-        BanapiCard {
+        BanapiCard(Modifier.appear(index = 3)) {
             CardHeader(
                 icon = Icons.Outlined.PhotoLibrary,
                 title = R.string.settings_storage_title,
@@ -207,6 +211,7 @@ private fun ApiKeyCard(
     onSave: (String) -> Unit,
     onInputChange: () -> Unit,
     onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var editing by remember { mutableStateOf(false) }
 
@@ -214,7 +219,7 @@ private fun ApiKeyCard(
     LaunchedEffect(state.savedApiKey) { editing = false }
 
     val savedKey = state.savedApiKey
-    BanapiCard {
+    BanapiCard(modifier) {
         if (savedKey != null && !editing) {
             CardHeader(
                 icon = Icons.Outlined.Key,

@@ -11,6 +11,7 @@ import app.banapi.R
 import app.banapi.data.GalleryImage
 import app.banapi.data.ImageStore
 import app.banapi.data.chat.ChatRepository
+import app.banapi.ui.components.UiText
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,30 +26,38 @@ class GalleryViewModel(
 
     val images: StateFlow<List<GalleryImage>> = store.images
 
-    private val _messages = Channel<Int>(Channel.BUFFERED)
+    private val _messages = Channel<UiText>(Channel.BUFFERED)
 
-    /** Avisos cortos para mostrar en un snackbar (ids de strings). */
-    val messages: Flow<Int> = _messages.receiveAsFlow()
+    /** Avisos cortos para mostrar en un snackbar. */
+    val messages: Flow<UiText> = _messages.receiveAsFlow()
 
     init {
         viewModelScope.launch { store.refresh() }
     }
 
-    fun saveToDevice(file: File) {
+    fun saveToDevice(files: List<File>) {
         viewModelScope.launch {
-            val saved = store.saveToDevice(file)
-            _messages.send(if (saved) R.string.msg_image_saved else R.string.msg_image_save_failed)
+            val saved = files.count { store.saveToDevice(it) }
+            _messages.send(
+                when {
+                    saved < files.size -> UiText(R.string.msg_image_save_failed)
+                    saved == 1 -> UiText(R.string.msg_image_saved)
+                    else -> UiText(R.plurals.msg_images_saved_count, saved)
+                },
+            )
         }
     }
 
-    fun delete(file: File) {
+    fun delete(files: List<File>) {
         viewModelScope.launch {
-            store.delete(file)
-            _messages.send(R.string.msg_image_deleted)
+            store.delete(files)
+            _messages.send(
+                if (files.size == 1) UiText(R.string.msg_image_deleted) else UiText(R.plurals.msg_images_deleted_count, files.size),
+            )
         }
     }
 
-    fun shareIntent(file: File): Intent = store.shareIntent(file)
+    fun shareIntent(files: List<File>): Intent = store.shareIntent(files)
 
     suspend fun chatIdOf(file: File): Long? = chats.chatIdForImage(file)
 
