@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Banapi</string>
+
+    <!-- Navegación -->
+    <string name="nav_gallery">Galería</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Acciones comunes -->
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_close">Cerrar</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_share">Compartir</string>
+    <string name="action_save">Guardar</string>
+
+    <!-- Galería -->
+    <string name="gallery_empty_title">Aún no hay imágenes</string>
+    <string name="gallery_empty_body">Las imágenes que crees aparecerán aquí.</string>
+    <string name="gallery_image_description">Imagen generada</string>
+    <string name="gallery_delete_title">¿Eliminar imagen?</string>
+    <string name="gallery_delete_body">Se borrará de Banapi. Si la guardaste en el teléfono, esa copia se mantiene.</string>
+    <string name="msg_image_saved">Guardada en Imágenes/Banapi</string>
+    <string name="msg_image_save_failed">No se pudo guardar la imagen</string>
+    <string name="msg_image_deleted">Imagen eliminada</string>
+
+    <!-- Ajustes: API key -->
+    <string name="settings_api_title">API key de Gemini</string>
+    <string name="settings_api_description">Se verifica con Google y se guarda cifrada, solo en este teléfono.</string>
+    <string name="settings_api_change">Cambiar</string>
+    <string name="settings_get_key">Conseguir key</string>
+    <string name="settings_api_placeholder">Pega tu API key</string>
+    <string name="settings_api_active">Activa</string>
+    <string name="show_key">Mostrar key</string>
+    <string name="hide_key">Ocultar key</string>
+    <string name="error_key_invalid">Google rechazó esta key. Revisa que esté bien copiada.</string>
+    <string name="error_key_no_connection">Sin conexión. Inténtalo de nuevo.</string>
+    <string name="error_key_failed">No se pudo verificar la key. Inténtalo más tarde.</string>
+    <string name="settings_remove_key_title">¿Eliminar la API key?</string>
+    <string name="settings_remove_key_body">Tendrás que agregarla de nuevo para crear imágenes.</string>
+    <string name="msg_key_saved">API key verificada y guardada</string>
+    <string name="msg_key_removed">API key eliminada</string>
+
+    <!-- Ajustes: tema -->
+    <string name="settings_theme_title">Tema</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+
+    <!-- Ajustes: almacenamiento -->
+    <string name="settings_storage_title">Almacenamiento</string>
+    <string name="settings_storage_delete_all">Borrar todo</string>
+    <string name="settings_delete_all_title">¿Borrar todas las imágenes?</string>
+    <string name="settings_delete_all_body">Se borrarán de Banapi. Las que guardaste en el teléfono se mantienen.</string>
+    <string name="msg_images_deleted">Imágenes eliminadas</string>
+    <plurals name="settings_storage_count">
+        <item quantity="one">%d imagen</item>
+        <item quantity="other">%d imágenes</item>
+    </plurals>
+
+    <!-- Ajustes: pie -->
+    <string name="settings_about">Banapi %1$s · No afiliada a Google</string>
+</resources>

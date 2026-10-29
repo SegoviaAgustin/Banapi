@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="window_background">#FFF5F3EE</color>
+    <!-- Fondo del ícono de la app -->
+    <color name="ic_launcher_background">#FF7C6114</color>
+</resources>

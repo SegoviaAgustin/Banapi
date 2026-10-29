@@ -1,0 +1,25 @@
+# Gradle
+.gradle/
+build/
+.kotlin/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Archivos locales
+local.properties
+*.local.md
+logo.png
+
+# Firmas y secretos: nunca subirlos al repo
+*.jks
+*.keystore
+keystore.properties
+
+# Sistema
+.DS_Store
+Thumbs.db
